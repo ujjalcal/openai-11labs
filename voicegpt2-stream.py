@@ -1,11 +1,10 @@
 import gradio as gr
 import openai
-from elevenlabs import generate, stream
+from elevenlabs import generate, stream, set_api_key
 from pydub import AudioSegment
 from pydub.playback import play
-from elevenlabs import generate, stream, set_api_key
-
 import time
+import asyncio
 
 from config import OPENAI_API_KEY, ELEVENLABS_API_KEY
 
@@ -13,15 +12,16 @@ from config import OPENAI_API_KEY, ELEVENLABS_API_KEY
 openai.api_key = OPENAI_API_KEY
 set_api_key(ELEVENLABS_API_KEY)
 
+#messages = ["You are a freedom mortgage ai assistant. Your name is Harb. Please respond to all input in 25 words or less."]
+messages = ["You are a freedom mortgage ai assistant named Harb. Please respond in a manner feels like the customer is talking to his or her best friend and in 25 words or less."]
 
-messages = ["You are a freedom mortgage ai assistant. Your name is Harb. Please respond to all input in 25 words or less."]
 
-def text_chunks(input_text, chunk_size=25):  # Assuming you want responses in 25 words or less
+def text_chunks(input_text, chunk_size=25):  
     words = input_text.split()
     for i in range(0, len(words), chunk_size):
         yield ' '.join(words[i:i+chunk_size])
 
-def gpt3_streamed_response(input_text):
+async def gpt3_streamed_response(input_text):
     for chunk in text_chunks(input_text):
         start_time = time.time()
         response = openai.Completion.create(
@@ -36,15 +36,7 @@ def gpt3_streamed_response(input_text):
         print(f"Time taken for openai.Completion.create(): {elapsed_time:.2f} seconds.")
         yield response["choices"][0]["text"]
 
-def audio_stream(text):
-    return generate(
-        text=text,
-        voice="Bella",
-        model="eleven_monolingual_v1",
-        stream=True
-    )
-
-def transcribe(audio):
+async def transcribe(audio):
     global messages
 
     audio_file = open(audio, "rb")
@@ -55,33 +47,26 @@ def transcribe(audio):
     messages.append(f"\nUser: {transcript['text']}")
 
     # Get GPT-3 responses in a streaming manner.
-    for response_text in gpt3_streamed_response(transcript['text']):
-        audio_data = audio_stream(response_text)
-        stream(audio_data)
+    async for response_text in gpt3_streamed_response(transcript['text']):
+        audio_data = generate(
+            text=response_text,
+            voice="Rose",
+            model="eleven_monolingual_v1",
+            stream=True
+        )
+        stream(audio_data)  # Assuming this will play the audio
         messages.append(response_text)
 
     chat_transcript = "\n".join(messages)
     return chat_transcript
 
-# iface = gr.Interface(
-#     fn=transcribe,
-#     inputs=gr.Audio(source="microphone", type="filepath", placeholder="Please start speaking..."),
-#     outputs="text",
-#     title="🤖 My Desktop ChatGPT Assistant 🤖",
-#     description="🌟 Please ask me your question and I will respond both verbally and in text to you...",
-# )
-
-
 iface = gr.Interface(
     fn=transcribe,
-    inputs=gr.Audio(source="microphone", type="filepath", placeholder="Please start speaking...", duration=10),  # duration can be set to a max value you think will be reasonable for the user to hold down the button.
+    inputs=gr.Audio(source="microphone", type="filepath", placeholder="Please start speaking...", duration=10),  
     outputs="text",
     title="🤖 My Desktop ChatGPT Assistant 🤖",
     description="🌟 Please ask me your question and I will respond both verbally and in text to you...",
-    live=True  # This makes the interface live, automatically processing the input as it changes.
+    live=True
 )
-
-iface.launch()
-
 
 iface.launch()
