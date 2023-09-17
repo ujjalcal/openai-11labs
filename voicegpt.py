@@ -1,20 +1,20 @@
 import gradio as gr
 import openai
 import winsound
-#from elevenlabslib import 
-from elevenlabs import generate, play, set_api_key
+
+from elevenlabs import generate, stream, set_api_key
 from pydub import AudioSegment
 from pydub.playback import play
 import io
 import time 
-#import config
 
 
 
-openai.api_key = "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" #config.OPENAI_API_KEY
+openai.api_key = "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" #config.OPENAI_API_KEY
 api_key = "2d1f8170c1745b6003b59ee3b39de86f" #config.ELEVENLABS_API_KEY
-from elevenlabslib import ElevenLabsUser
-user = ElevenLabsUser(api_key)
+from elevenlabs import set_api_key
+set_api_key(api_key)
+
 
 messages = ["You are an freedom mortgage ai assistant. Your name is Harb. Please respond to all input in 25 words or less."]
 
@@ -45,21 +45,24 @@ def transcribe(audio):
     system_message = response["choices"][0]["text"]
     messages.append(f"{system_message}")
 
-    #voice = user.get_voices_by_name("Antoni")[0]
-    #audio = generate(system_message, ) #    generate_audio_bytes(system_message)
+    ##  Audio Generation with ElevenLabs API ##
     start_time = time.time()
     audio = generate(
         text=system_message,
-        voice="Bella"
+        voice="Antoni", # "Antoni", "Celia", "Ella", "Ethan", "Harper", "Liam", "Lily", "Mia", "Oliver", "Sophia", "William"
+        #emotion="happy", # "neutral", "happy", "sad", "angry"
+        latency=4,
+        model="eleven_monolingual_v1"
+        #optimize_streaming_latency=4
     )
     elapsed_time = time.time() - start_time
     print(f"Audio Generation took {elapsed_time} seconds")
 
-    #play(audio, notebook=True)
-
+    ## Audio playback with PyDub ##
     audio = AudioSegment.from_file(io.BytesIO(audio), format="mp3")
     audio.export("output.wav", format="wav")
 
+    ## Audio playback with winsound ##
     winsound.PlaySound("output.wav", winsound.SND_FILENAME)
 
     chat_transcript = "\n".join(messages)
