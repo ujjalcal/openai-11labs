@@ -1,83 +1,68 @@
-import pyaudio
-import numpy as np
+import gradio as gr
 import openai
-import time
 from elevenlabs import generate, stream, set_api_key
+import time
+
 from config import OPENAI_API_KEY, ELEVENLABS_API_KEY
 
 # Set API keys
 openai.api_key = OPENAI_API_KEY
 set_api_key(ELEVENLABS_API_KEY)
 
-# Audio Configuration
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 44100
-CHUNK = 1024
-RECORD_SECONDS = 3
-THRESHOLD = 200
+messages = ["You are a freedom mortgage ai assistant. Your name is Harb."]
 
-audio = pyaudio.PyAudio()
-messages = ["You are a freedom mortgage ai assistant. Your name is Harb. Please respond to all input in 25 words or less."]
-
-
-def transcribe(audio_data):
-    global messages
-
-    transcript = openai.Audio.transcribe("whisper-1", audio_data)
-    messages.append(f"\nUser: {transcript['text']}")
-
+def gpt3_response(input_text):
     response = openai.Completion.create(
         engine="text-davinci-003",
-        prompt=transcript['text'],
+        prompt=input_text,
         max_tokens=80,
         n=1,
         stop=None,
         temperature=0.5
     )
-    
-    response_text = response["choices"][0]["text"]
-    messages.append(response_text)
-    
-    audio_stream_data = generate(
-        text=response_text,
+    return response["choices"][0]["text"]
+
+def audio_stream(text):
+    audio_data = generate(
+        text=text,
         voice="Bella",
         model="eleven_monolingual_v1",
         stream=True
     )
+    stream(audio_data)
+
+def handle_input(audio=None, text_input=None):
+    global messages
     
-    stream(audio_stream_data)
-    
-    chat_transcript = "\n".join(messages)
+    if audio:
+        audio_file = open(audio, "rb")
+        transcript = openai.Audio.transcribe("whisper-1", audio_file)
+        user_message = transcript['text']
+        messages.append(f"User: {user_message}")
+        
+    if text_input:
+        user_message = text_input
+        messages.append(f"User: {text_input}")
+        
+    bot_response = gpt3_response(user_message)
+    messages.append(f"Harb: {bot_response}")
+
+    # Stream audio response
+    audio_stream(bot_response)
+
+    chat_transcript = "\n\n".join(messages)
     return chat_transcript
 
-def process_audio(audio_data):
-    result = transcribe(audio_data)
-    print(result)
+iface = gr.Interface(
+    fn=handle_input,
+    inputs=[
+        gr.Audio(source="microphone", type="filepath"),
+        gr.Textbox(placeholder="Type your message here...")
+    ],
+    outputs=gr.Textbox(placeholder="Chat History..."),
+    title="🤖 Harb: Your AI Assistant 🤖",
+    description="Talk or type to communicate with Harb.",
+    live=True
+)
 
-def listen_continuous(callback):
-    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                        rate=RATE, input=True,
-                        frames_per_buffer=CHUNK)
-    print("Listening...")
-    try:
-        while True:
-            data = stream.read(CHUNK)
-            rms = np.sqrt(np.mean(np.square(np.frombuffer(data, dtype=np.int16))))
-            #print("RMS:", rms)
-            if rms > THRESHOLD:
-                print("Heard something!")
-                frames = []
-                for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-                    frames.append(stream.read(CHUNK))
-                audio_data = b''.join(frames)
-                callback(audio_data)
-                time.sleep(RECORD_SECONDS)
-    except KeyboardInterrupt:
-        print("Interrupted. Closing stream and terminating audio.")
-        stream.stop_stream()
-        stream.close()
-        audio.terminate()
-
-if __name__ == "__main__":
-    listen_continuous(process_audio)
+iface.launch(height=400)
