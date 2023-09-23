@@ -17,7 +17,7 @@ openai.api_key = OPENAI_API_KEY
 set_api_key(ELEVENLABS_API_KEY)
 
 
-messages = ["You are an freedom mortgage ai assistant. Your name is Harb. Please respond to all input in 25 words or less."]
+messages = ["You are a mortgage ai assistant. Your name is Grace. Please respond to all input in 25 words or less."]
 
 from elevenlabs import generate, stream
 

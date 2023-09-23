@@ -35,10 +35,10 @@ class Chat():
         print('set_memory')
         _id = self.user_number + "-" + str(self.chat_index)
         print('set_memory -- id- '+_id)
-        print('set_memory -- conversation_table_name- '+conversation_table_name)
+        print('set_memory -- conversation_hist_table_name- '+conversation_table_name)
         self.message_history = DynamoDBChatMessageHistory(
             table_name=conversation_table_name, session_id=_id)
-        print('set_memory --message_history from langchain/dynamodb - '+str(self.message_history))
+        print('set_memory -msg_histoy by sessionid -dynaomodb object '+str(self.message_history))
         self.memory = ConversationBufferMemory(
             memory_key="chat_history", chat_memory=self.message_history, return_messages=True)
         print('set_memory -- langchain memory- '+str(self.memory))
@@ -50,17 +50,17 @@ class Chat():
         serializedData = ts.serialize(key)
         
         try:
-            print('getItem - chat_index_table_name - '+chat_index_table_name)
-            print('getItem - serializedData - '+str(serializedData))
-            print('getItem - key - '+str(key))
+            print('get_chat_index_table_name - '+chat_index_table_name)
+            print('get_chat_index - serializedData - '+str(serializedData))
+            print('get_chat_index - key - '+str(key))
             
             chat_index = dynamodb.get_item(
                 TableName=chat_index_table_name, Key=serializedData['M'])
-            print('getItem - chat_index - '+str(chat_index))
+            print('get_chat_index - chat_index - '+str(chat_index))
             if 'Item' in chat_index:
                 return int(chat_index['Item']['chat_index']['N'])
         except ClientError as e:
-            print('getItem - ClientError - '+str(e))
+            print('get_chat_index - ClientError - '+str(e))
             #print(e)
         return 0
         
