@@ -1,0 +1,20 @@
+{
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "session_id",
+        "AttributeType": "S"
+      }
+    ],
+    "TableName": "conv-hist-table",
+    "KeySchema": [
+      {
+        "AttributeName": "session_id",
+        "KeyType": "HASH"
+      }
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  }
+  

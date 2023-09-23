@@ -1,0 +1,20 @@
+{
+    "AttributeDefinitions": [
+      {
+        "AttributeName": "phone_number",
+        "AttributeType": "S"
+      }
+    ],
+    "TableName": "chat_index_table",
+    "KeySchema": [
+      {
+        "AttributeName": "phone_number",
+        "KeyType": "HASH"
+      }
+    ],
+    "ProvisionedThroughput": {
+      "ReadCapacityUnits": 5,
+      "WriteCapacityUnits": 5
+    }
+  }
+  

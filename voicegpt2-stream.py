@@ -12,18 +12,20 @@ from config import OPENAI_API_KEY, ELEVENLABS_API_KEY
 openai.api_key = OPENAI_API_KEY
 set_api_key(ELEVENLABS_API_KEY)
 
-#messages = ["You are a freedom mortgage ai assistant. Your name is Harb. Please respond to all input in 25 words or less."]
-messages = ["You are a freedom mortgage ai assistant named Harb. Please respond in a manner feels like the customer is talking to his or her best friend and in 25 words or less."]
+#messages = ["You are a  mortgage ai assistant. Your name is Grace. Please respond to all input in 25 words or less."]
+messages = ["You are a  mortgage ai assistant named Grace. Please respond in a manner feels like the customer is talking to his or her best friend and in 25 words or less."]
 
-
+## secondary function to chunk text ##
 def text_chunks(input_text, chunk_size=25):  
     words = input_text.split()
     for i in range(0, len(words), chunk_size):
         yield ' '.join(words[i:i+chunk_size])
 
+## secondary function to stream audio ##
 async def gpt3_streamed_response(input_text):
     for chunk in text_chunks(input_text):
         start_time = time.time()
+        print(f"Sending to GPT-3: {chunk}")
         response = openai.Completion.create(
             engine="text-davinci-003",
             prompt=chunk,
@@ -36,6 +38,8 @@ async def gpt3_streamed_response(input_text):
         print(f"Time taken for openai.Completion.create(): {elapsed_time:.2f} seconds.")
         yield response["choices"][0]["text"]
 
+
+## primary function to transcribe voice and get response from gpt ##
 async def transcribe(audio):
     global messages
 
@@ -60,6 +64,8 @@ async def transcribe(audio):
     chat_transcript = "\n".join(messages)
     return chat_transcript
 
+
+##  UI interface ##
 iface = gr.Interface(
     fn=transcribe,
     inputs=gr.Audio(source="microphone", type="filepath", placeholder="Please start speaking...", duration=10),  
