@@ -28,12 +28,12 @@ sop = [
 
 class Agent():
     def __init__(self, llm, memory) -> None:
-        self.prefix = "What follows is a conversation with Herb, the virtual assistant of Mortgage, and Ujjal. The date is: " + \
+        self.prefix = "What follows is a conversation with Grace, the virtual assistant of Mortgage, and Ujjal. The date is: " + \
             datetime.now().strftime("%m/%d/%Y, %H:%M:%S") + "." + \
             "\n To help the user make a mortgaeg payment he MUST follow these steps in order: \n" + str(sop) + \
-            "\n\n\n Herb can also help do things like help the user calculate how many payments/time they have left on their loan and calculate how much interest they will pay over the life of the loan." + \
-            "Herb can also help the user calculate how much they will save if they make an extra payment or start paying more on their loan."
-        self.ai_prefix = "Herb"
+            "\n\n\n Grace can also help do things like help the user calculate how many payments/time they have left on their loan and calculate how much interest they will pay over the life of the loan." + \
+            "Grace can also help the user calculate how much they will save if they make an extra payment or start paying more on their loan."
+        self.ai_prefix = "Grace"
         self.human_prefix = "Ujjal"
         self.llm = llm
         self.memory = memory

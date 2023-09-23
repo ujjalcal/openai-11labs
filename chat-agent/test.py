@@ -7,11 +7,14 @@ import json
 #     "sessionId": "609-455-0028"
 # }
 
+#optionally the voice prompt will say "start a new conversation". This will trigger the agent to start a new conversation. 
 event = {
-    "inputTranscript": "Hi, I\'m Grace, Mortgage\'s digital assistant. What can I help you with today?",
+    "inputTranscript": "what is loan modification?",
     "sessionId": "609-455-0028",
     "body": json.dumps({"phoneNumber": "609-455-0028", "message": "what is loan modification?"})
 }
+
+
 
 
 # Call the Lambda function
